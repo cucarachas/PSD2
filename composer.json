@@ -1,4 +1,7 @@
 {
+  "name": "cucarachas/psd2",
+  "description": "NBG PSD2",
+  "type": "package",
   "require": {
     "vlucas/phpdotenv": "^2.4",
     "twig/twig": "^3.0",
