@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Home | App</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-0evHe/X+R7YkIZDRvuzKMRqM+OrBnVFBL6DOitfPri4tjfHxaWutUpFmBp4vmVor" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/js/bootstrap.bundle.min.js" integrity="sha384-pprn3073KE6tl6bjs2QrFaJGz5/SUsLqktiwsUTF55Jfv3qYSDhgCecCxMW52nD2" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+</head>
+<body>
+
+    <main>
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center">
+                <h1 class="my-4">{{ sandboxId }}</h1>
+                <a href="/payments">Payments</a>
+            </div>
+            {% for user in users %}
+                <div class="row">
+                    {% for account in user.accounts %}
+                        <div class="col">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">{{ account.description }}</h5>
+                                    <h6 class="card-subtitle mb-2 text-muted">{{ account.currency }}</h6>
+                                    <p class="card-text bold">{{ account.iban }}</p>
+                                    <h1>{{ account.balance }}</h1>
+                                    <button type="button" class="btn btn-primary btn-payment" data-iban="{{ account.iban }}">Initiate a payment</button>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+        </div>
+    </main>
+
+    <!-- Modal -->
+    <div class="modal fade" id="paymentModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Payment</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-success mb-2 creditor-iban" role="alert"></div>
+                    <input type="hidden" id="creditor-iban" name="creditor-iban">
+                    <div class="form-group mb-2">
+                        <input type="text" id="amount" name="amount" class="form-control" placeholder="Enter amount">
+                    </div>
+                    <div class="form-group mb-2">
+                        <input type="text" id="debtor-iban" name="debtor-iban" class="form-control" placeholder="Enter creditor IBAN">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <span class="payment-response"></span>
+                    <button type="button" class="btn btn-success btn-payment-confirm">Confirm</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const modal = new bootstrap.Modal(document.getElementById('paymentModal'), {});
+        $('.btn-payment').on('click', function(){
+            let iban = $(this).data('iban');
+            $('#paymentModal')
+                .find('.creditor-iban').text('IBAN: ' + iban)
+            $('#paymentModal')
+                .find('#creditor-iban').val(iban)
+
+            modal.show()
+        })
+
+        $('#paymentModal').on('hidden.bs.modal', () => {
+            $('.payment-response').empty()
+            $('#amount').val('')
+            $('#creditor-iban').val('')
+            $('#debtor-iban').val('')
+        })
+
+        $('.btn-payment-confirm').on('click', function(){
+            let btn = $(this);
+            $(btn)
+                .addClass('disabled')
+                .text('Initiation...')
+            $.ajax({
+                url: window.location.origin + '/payment',
+                method: 'POST',
+                data: {
+                    amount: $('#amount').val(),
+                    creditor: $('#creditor-iban').val(),
+                    debtor: $('#debtor-iban').val(),
+                },
+                dataType: 'json',
+                success: function(data){
+                    if (!data.error){
+                        $('.payment-response')
+                            .css({'color': 'green'})
+                            .text('Payment has been successfully initiated!')
+                    }else{
+                        $('.payment-response')
+                            .css({'color': 'red'})
+                            .text('Something went wrong..')
+                    }
+                    $(btn)
+                        .removeClass('disabled')
+                        .text('Confirm')
+                },
+                error: function(error){
+                },
+                complete: function(){
+                }
+
+            })
+        })
+    </script>
+</body>
+</html>

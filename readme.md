@@ -1,0 +1,6 @@
+- composer install
+- php -S localhost:9001 -t public
+- import `demo.sql`
+- Copy `.env.example` to `.env` and replace `NGB_CLIENT_ID`, `NBG_CLIENT_SECRET` with yours 
+- Run the application on `localhost:9001`
+- Done!
